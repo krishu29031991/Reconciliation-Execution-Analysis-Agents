@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  reconciliation-agent:
+    build: .
+    volumes:
+      - ./sql:/app/sql
+      - ./config:/app/config
+      - ./output:/app/output
+    environment:
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+    env_file:
+      - .env
