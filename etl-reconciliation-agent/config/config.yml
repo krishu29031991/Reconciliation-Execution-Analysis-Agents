@@ -1,0 +1,24 @@
+gcp:
+  project_id: your-gcp-project-id
+  location: us-central1
+  dataset: reconciliation
+
+source_code:
+  root_path: ./sql
+  exclude_folders:
+    - archive
+    - deprecated
+    - tests
+
+validation:
+  severity_levels:
+    critical: 0.0
+    high: 1.0
+    medium: 5.0
+    low: 10.0
+
+output_dir: ./output
+
+bigquery:
+  source_prefix: source_
+  target_prefix: target_
