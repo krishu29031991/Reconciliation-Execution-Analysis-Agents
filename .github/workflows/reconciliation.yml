@@ -1,0 +1,77 @@
+name: ETL Reconciliation
+
+on:
+  pull_request:
+    paths:
+      - '**.sql'
+      - '**.sql.j2'
+  workflow_dispatch:
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          cd etl-reconciliation-agent
+          pip install -r requirements.txt
+          pip install -e .
+      
+      - name: Run Reconciliation
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+        run: |
+          cd etl-reconciliation-agent
+          python -m app.main
+      
+      - name: Upload Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: reconciliation-report
+          path: etl-reconciliation-agent/output/
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'etl-reconciliation-agent/output/reconciliation_report.json';
+            
+            if (fs.existsSync(reportPath)) {
+              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+              const summary = report.summary;
+              
+              let comment = '## 🤖 ETL Reconciliation Report\n\n';
+              comment += `**Status:** ${summary.status}\n`;
+              comment += `**Pass Rate:** ${summary.pass_rate.toFixed(1)}%\n`;
+              comment += `**Passed:** ${summary.passed}/${summary.total_scenarios}\n`;
+              comment += `**Critical Failures:** ${summary.critical_failures}\n`;
+              
+              if (summary.critical_failures > 0) {
+                comment += '\n⚠️ **Critical failures detected! Please fix before merging.**';
+              } else if (summary.failed > 0) {
+                comment += '\n⚠️ **Some non-critical failures detected. Review before merging.**';
+              } else {
+                comment += '\n✅ **All validations passed!**';
+              }
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
