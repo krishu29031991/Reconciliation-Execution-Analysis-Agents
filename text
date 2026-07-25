@@ -1,0 +1,31 @@
+your-repo/
+├── etl-reconciliation-agent/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py
+│   │   ├── lineage_extractor.py
+│   │   ├── scenario_builder.py
+│   │   ├── validator.py
+│   │   ├── reporter.py
+│   │   └── config.py
+│   ├── tests/
+│   │   ├── __init__.py
+│   │   ├── test_lineage_extractor.py
+│   │   ├── test_scenario_builder.py
+│   │   └── test_validator.py
+│   ├── config/
+│   │   ├── config.yml
+│   │   └── test_suite.yml (auto-generated)
+│   ├── output/
+│   │   └── reports/
+│   ├── requirements.txt
+│   ├── setup.py
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── .github/
+│   │   └── workflows/
+│   │       ├── reconciliation.yml
+│   │       └── test.yml
+│   ├── .gitignore
+│   ├── README.md
+│   └── LICENSE
